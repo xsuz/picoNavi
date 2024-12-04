@@ -1,4 +1,4 @@
-#include "sd_buf.h"
+#include "sd_logger.h"
 
 #include "byte_utils.h"
 
@@ -9,7 +9,7 @@
 #include <SD.h>
 #include <SPI.h>
 
-namespace sd_buf
+namespace sd_logger
 {
     /* Semaphore for access control of buffer*/
     SemaphoreHandle_t xSemaphore = NULL;
@@ -27,7 +27,7 @@ namespace sd_buf
     /// @param pvParam 
     void task(void *pvParam)
     {
-        sd_buf::xSemaphore = xSemaphoreCreateMutexStatic(&sd_buf::xMutexBuf);
+        sd_logger::xSemaphore = xSemaphoreCreateMutexStatic(&sd_logger::xMutexBuf);
 
         while (!SD.begin(17))
         {
@@ -38,19 +38,18 @@ namespace sd_buf
             vTaskDelay(100);
         }
 
+        File f = SD.open("log.bin", FILE_WRITE);
         while (1)
         {
 
-            while (sd_buf::row != sd_buf::track)
+            while (sd_logger::row != sd_logger::track)
             {
-                File f = SD.open("log-new.bin", FILE_WRITE);
                 if (f)
                 {
-                    f.write(sd_buf::buf[sd_buf::track], sd_buf::size);
-                    f.close();
+                    f.write(sd_logger::buf[sd_logger::track], sd_logger::size);
+                    f.flush();
                 }
-                sd_buf::track++;
-                // Serial.print("+");
+                sd_logger::track++;
             }
             vTaskDelay(10);
         }
@@ -72,22 +71,22 @@ namespace sd_buf
             return;
         }
 
-        t2u.timestamp = millis() + sd_buf::offset;
+        t2u.timestamp = millis() + sd_logger::offset;
         swap32<uint32_t>(&t2u.timestamp);
 
         if (size == 0)
         {
             return;
         }
-        xSemaphoreTake(sd_buf::xSemaphore, (TickType_t)portMAX_DELAY);
+        xSemaphoreTake(sd_logger::xSemaphore, (TickType_t)portMAX_DELAY);
         for (uint8_t i = 0; i < 4; i++)
         {
             if (t2u.bytes[i] == 0x00)
             {
-                sd_buf::write_raw(cobs_buf_idx + 1);
+                sd_logger::write_raw(cobs_buf_idx + 1);
                 for (uint8_t j = 0; j < cobs_buf_idx; j++)
                 {
-                    sd_buf::write_raw(cobs_buf[j]);
+                    sd_logger::write_raw(cobs_buf[j]);
                 }
                 cobs_buf_idx = 0;
             }
@@ -101,10 +100,10 @@ namespace sd_buf
         {
             if (buffer[i] == 0x00)
             {
-                sd_buf::write_raw(cobs_buf_idx + 1);
+                sd_logger::write_raw(cobs_buf_idx + 1);
                 for (uint8_t j = 0; j < cobs_buf_idx; j++)
                 {
-                    sd_buf::write_raw(cobs_buf[j]);
+                    sd_logger::write_raw(cobs_buf[j]);
                 }
                 cobs_buf_idx = 0;
             }
@@ -114,23 +113,23 @@ namespace sd_buf
                 cobs_buf_idx++;
             }
         }
-        sd_buf::write_raw(cobs_buf_idx + 1);
+        sd_logger::write_raw(cobs_buf_idx + 1);
         for (uint8_t j = 0; j < cobs_buf_idx; j++)
         {
-            sd_buf::write_raw(cobs_buf[j]);
+            sd_logger::write_raw(cobs_buf[j]);
         }
-        sd_buf::write_raw(0x00);
-        xSemaphoreGive(sd_buf::xSemaphore);
+        sd_logger::write_raw(0x00);
+        xSemaphoreGive(sd_logger::xSemaphore);
     }
 
     void inline write_raw(uint8_t data)
     {
-        sd_buf::buf[sd_buf::row][sd_buf::idx] = data;
-        sd_buf::idx++;
-        if (sd_buf::idx == sd_buf::size)
+        sd_logger::buf[sd_logger::row][sd_logger::idx] = data;
+        sd_logger::idx++;
+        if (sd_logger::idx == sd_logger::size)
         {
-            sd_buf::row++;
-            sd_buf::idx = 0;
+            sd_logger::row++;
+            sd_logger::idx = 0;
         }
     }
 

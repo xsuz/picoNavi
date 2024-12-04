@@ -5,7 +5,7 @@
 #include "gnss.h"
 #include "SensorPacket.h"
 #include "byte_utils.h"
-#include "sd_buf.h"
+#include "sd_logger.h"
 
 #include <TinyGPSPlus.h>
 
@@ -15,6 +15,7 @@ namespace gnss
     TinyGPSPlus gps;
 
     constexpr float deg2radf=PI/180.0f;
+    constexpr float threshold_hdop = 2.0;
 
     /// @brief PPS信号の割り込みハンドラ
     /// @param gpio
@@ -26,7 +27,7 @@ namespace gnss
         {
             // UTC -> JSTの変換を行うために((gps.time.hour()+9)%24)と計算している
             // PPSで割り込みが入った瞬間はGPSから時刻を受け取っていないため秒数は1足す。
-            sd_buf::set_timestamp_offset(((((gps.time.hour() + 9) % 24) * 60 + gps.time.minute()) * 60 + gps.time.second() + 1) * 1000 - millis());
+            sd_logger::set_timestamp_offset(((((gps.time.hour() + 9) % 24) * 60 + gps.time.minute()) * 60 + gps.time.second() + 1) * 1000 - millis());
         }
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), true);
     }
@@ -45,6 +46,7 @@ namespace gnss
         Serial1.begin(115200); // baudrate 115200で再度UART0を初期化
         delay(100);
         Serial1.println("$PMTK220,100*2F"); // 送信頻度を100ms間隔に変更
+        Serial1.println("$PMTK353,1,0,1,1*36"); // GLONASSを無効化
 
         // PPSによる割り込み設定
         gpio_init(2);
@@ -52,7 +54,7 @@ namespace gnss
         gpio_set_irq_enabled_with_callback(2, GPIO_IRQ_EDGE_RISE, true, &pps_callback);
 
         //
-        auto timerIMU = xTimerCreate("imu", 1000, pdTRUE, 0, timer_callback);
+        auto timerIMU = xTimerCreate("imu", 100, pdTRUE, 0, timer_callback);
         xTimerStart(timerIMU, 0);
 
         while (1)
@@ -76,7 +78,7 @@ namespace gnss
             GPSData data;
             uint8_t bytes[sizeof(data)];
         } spkt;
-        if (gps.location.isValid() && (gps.hdop.hdop() < 3.0))
+        if (gps.location.isValid() && (gps.hdop.hdop() < threshold_hdop))
         {
             spkt.data.id = 0x60;
             spkt.data.latitude = gps.location.lat();
@@ -84,15 +86,17 @@ namespace gnss
             spkt.data.alt = gps.altitude.meters();
             spkt.data.ve = -gps.speed.mps() * sinf(gps.course.deg() * deg2radf);
             spkt.data.vn = gps.speed.mps() * cosf(gps.course.deg() * deg2radf);
+            spkt.data.timestamp = millis();
+            spkt.data.hdop = gps.hdop.hdop();
             swap64<double>(&spkt.data.latitude);
             swap64<double>(&spkt.data.longitude);
             swap32<float>(&spkt.data.alt);
             swap32<float>(&spkt.data.ve);
             swap32<float>(&spkt.data.vn);
-            spkt.data.timestamp = millis();
             swap32<uint32_t>(&spkt.data.timestamp);
+            swap32<float>(&spkt.data.hdop);
 
-            sd_buf::write_pkt(spkt.bytes, sizeof(spkt.bytes));
+            sd_logger::write_pkt(spkt.bytes, sizeof(spkt.bytes));
         }
         else
         {

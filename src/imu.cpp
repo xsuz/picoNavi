@@ -5,7 +5,7 @@
 
 #include "SensorPacket.h"
 #include "byte_utils.h"
-#include "sd_buf.h"
+#include "sd_logger.h"
 
 #include <ICM_20948.h>
 #include <SPI.h>
@@ -70,7 +70,7 @@ namespace imu
         swap32<float>(&spkt.data.w_x);
         swap32<float>(&spkt.data.w_y);
         swap32<float>(&spkt.data.w_z);
-        sd_buf::write_pkt(spkt.bytes, sizeof(spkt.bytes));
+        sd_logger::write_pkt(spkt.bytes, sizeof(spkt.bytes));
         digitalWrite(LED_BUILTIN, LOW);
     }
 }

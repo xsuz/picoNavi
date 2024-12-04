@@ -19,6 +19,8 @@ struct GPSData {
   float ve;
   /// @brief 速度(North)
   float vn;
+  /// @brief HDOP
+  float hdop;
 };
 
 /// @brief PitotのDeviceData
