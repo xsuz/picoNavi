@@ -23,7 +23,7 @@ struct GPSData {
   float hdop;
 };
 
-/// @brief PitotのDeviceData
+/// @brief IMUのDeviceData
 /// @note 先頭はid
 struct IMUData {
   /// @brief デバイス識別子
@@ -42,4 +42,18 @@ struct IMUData {
   float w_y;
   /// @brief 角速度 z
   float w_z;
+  /// @brief 地磁気 x
+  float m_x;
+  /// @brief 地磁気 y
+  float m_y;
+  /// @brief 地磁気 z
+  float m_z;
+  ///@brief q0
+  float q0;
+  ///@brief q1
+  float q1;
+  ///@brief q2
+  float q2;
+  ///@brief q3
+  float q3;
 };
