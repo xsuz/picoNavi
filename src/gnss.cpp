@@ -7,14 +7,17 @@
 #include "byte_utils.h"
 #include "sd_logger.h"
 
+#include <time.h>
+
 #include <TinyGPSPlus.h>
 
 namespace gnss
 {
     /// @brief NMEAパーサー
     TinyGPSPlus gps;
+    tm timeinfo;
 
-    constexpr float deg2radf=PI/180.0f;
+    constexpr float deg2radf = PI / 180.0f;
     constexpr float threshold_hdop = 2.0;
 
     /// @brief PPS信号の割り込みハンドラ
@@ -23,11 +26,19 @@ namespace gnss
     void pps_callback(uint gpio, uint32_t emask)
     {
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), false);
-        if (gps.time.isValid())
+        if (gps.time.isValid()&&gps.date.isValid())
         {
-            // UTC -> JSTの変換を行うために((gps.time.hour()+9)%24)と計算している
-            // PPSで割り込みが入った瞬間はGPSから時刻を受け取っていないため秒数は1足す。
-            sd_logger::set_timestamp_offset(((((gps.time.hour() + 9) % 24) * 60 + gps.time.minute()) * 60 + gps.time.second() + 1) * 1000 - millis());
+            uint64_t offset = millis();
+            timeinfo.tm_sec = gps.time.second();
+            timeinfo.tm_min = gps.time.minute();
+            timeinfo.tm_hour = gps.time.hour();
+            timeinfo.tm_mday = gps.date.day();
+            timeinfo.tm_mon = gps.date.month()-1;
+            timeinfo.tm_year = gps.date.year() - 1900;
+            timeinfo.tm_isdst = 0;
+            time_t t = mktime(&timeinfo);
+            offset = t * 1000-offset;
+            sd_logger::set_timestamp_offset(offset);
         }
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), true);
     }
@@ -45,7 +56,7 @@ namespace gnss
         Serial1.flush();       // 無効なデータを破棄
         Serial1.begin(115200); // baudrate 115200で再度UART0を初期化
         delay(100);
-        Serial1.println("$PMTK220,100*2F"); // 送信頻度を100ms間隔に変更
+        Serial1.println("$PMTK220,100*2F");     // 送信頻度を100ms間隔に変更
         Serial1.println("$PMTK353,1,0,1,1*36"); // GLONASSを無効化
 
         // PPSによる割り込み設定

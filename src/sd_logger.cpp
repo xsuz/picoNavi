@@ -19,7 +19,7 @@ namespace sd_logger
     uint8_t buf[256][size];
     int idx = 0;
     uint8_t row = 0, track = 0;
-    uint32_t offset = 0;
+    uint64_t offset = 0;
 
     void inline write_raw(uint8_t);
 
@@ -60,8 +60,8 @@ namespace sd_logger
 
         union
         {
-            uint32_t timestamp;
-            uint8_t bytes[4];
+            uint64_t timestamp;
+            uint8_t bytes[8];
         } t2u;
 
         uint8_t cobs_buf_idx = 0;
@@ -72,14 +72,14 @@ namespace sd_logger
         }
 
         t2u.timestamp = millis() + sd_logger::offset;
-        swap32<uint32_t>(&t2u.timestamp);
+        swap64<uint64_t>(&t2u.timestamp);
 
         if (size == 0)
         {
             return;
         }
         xSemaphoreTake(sd_logger::xSemaphore, (TickType_t)portMAX_DELAY);
-        for (uint8_t i = 0; i < 4; i++)
+        for (uint8_t i = 0; i < sizeof(t2u.timestamp); i++)
         {
             if (t2u.bytes[i] == 0x00)
             {
@@ -133,7 +133,7 @@ namespace sd_logger
         }
     }
 
-    void set_timestamp_offset(uint32_t val){
+    void set_timestamp_offset(uint64_t val){
         offset=val;
     }
 }
