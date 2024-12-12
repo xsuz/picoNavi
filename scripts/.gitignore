@@ -1,4 +1,4 @@
 log.bin
-__pycache__
+__pycache__/*
 gps.csv
 imu.csv
