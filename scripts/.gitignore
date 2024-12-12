@@ -1,1 +1,3 @@
 log.bin
+__pycache__
+gps.csv

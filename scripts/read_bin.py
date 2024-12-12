@@ -1,7 +1,7 @@
 from cobs import cobs_decode
 from tqdm import tqdm
 from matplotlib import pyplot as plt
-from struct import unpack
+from struct import Struct
 import numpy as np
 
 if __name__=="__main__":
@@ -11,6 +11,8 @@ if __name__=="__main__":
     pos=[]
     imu=[]
     with tqdm(total=len(data)+1) as pbar:
+        parser_imu=Struct(">IxxxxIfffffffffffff")
+        parser_gps=Struct(">IxxxxIddfffxxxx")
         while len(data)>0:
             before = len(data)
             dec, data = cobs_decode(data)
@@ -23,13 +25,15 @@ if __name__=="__main__":
                 continue
             match dec[4]:
                 case 0x40:
-                    timestamp,t,ax,ay,az,wx,wy,wz=unpack(">IxxxxIffffff",bytes(dec))
-                    imu.append([timestamp,ax,ay,az,wx,wy,wz])
+                    timestamp,t,ax,ay,az,wx,wy,wz,mx,my,mz,q0,q1,q2,q3=parser_imu.unpack(bytes(dec))
+                    imu.append([timestamp,ax,ay,az,wx,wy,wz,mx,my,mz])
                 case 0x60:
-                    timestamp,t,lat,lng,alt,ve,vn=unpack(">IxxxxIddfffxxxx",bytes(dec))
-                    gps.append((timestamp,t,(lat,lng),(ve,vn)))
+                    timestamp,t,lat,lng,alt,ve,vn=parser_gps.unpack(bytes(dec))
+                    gps.append((timestamp,lat,lng,alt,ve,vn,0))
                     pos.append([timestamp,lat,lng,alt,ve,vn,0])
     imu=np.array(imu).T
+    np.savetxt("imu.csv",imu.T,delimiter=",")
+    np.savetxt("gps.csv",np.array(gps),delimiter=",")
     plt.scatter(imu[0],imu[1],label='$a_x$',s=1)
     plt.scatter(imu[0],imu[2],label='$a_y$',s=1)
     plt.scatter(imu[0],imu[3],label='$a_z$',s=1)

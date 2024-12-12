@@ -16,8 +16,6 @@ namespace imu
 {
     ICM_20948_SPI icm20948;
     float quat[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-    float b[2] = {1.0f, 0.0f};
-    float wb[3] = {0.0f, 0.0f, 0.0f};
     constexpr float deg2rad = M_PI / 180.0f;
     void task(void *pvParam)
     {
@@ -73,7 +71,7 @@ namespace imu
         spkt.data.m_y = icm20948.magY();
         spkt.data.m_z = icm20948.magZ();
 
-        madgwick::update_marg(spkt.data.w_x, spkt.data.w_y, spkt.data.w_z, spkt.data.a_x, spkt.data.a_y, spkt.data.a_z, spkt.data.m_x, spkt.data.m_y, spkt.data.m_z, quat, wb, b);
+        madgwick::update_imu(spkt.data.w_x, spkt.data.w_y, spkt.data.w_z, spkt.data.a_x, spkt.data.a_y, spkt.data.a_z, quat);
         spkt.data.q0 = quat[0];
         spkt.data.q1 = quat[1];
         spkt.data.q2 = quat[2];

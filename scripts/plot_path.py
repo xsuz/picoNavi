@@ -1,7 +1,7 @@
 from cobs import cobs_decode
 from tqdm import tqdm
 from matplotlib import pyplot as plt
-from struct import unpack
+from struct import Struct
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
@@ -19,9 +19,11 @@ gps=[]
 pos=[]
 imu=[]
 if __name__=="__main__":
-    with open("./log-new.bin","rb") as f:
+    with open("./log.bin","rb") as f:
         data = f.read()
     with tqdm(total=len(data)+1) as pbar:
+        parser_imu=Struct(">IxxxxIfffffffffffff")
+        parser_gps=Struct(">IxxxxIddfffxxxx")
         while len(data)>0:
             before = len(data)
             dec, data = cobs_decode(data)
@@ -37,7 +39,7 @@ if __name__=="__main__":
                     pass
                 case 0x60:
                     try:
-                        timestamp,t,lat,lng,alt,ve,vn=unpack(">IxxxxIddfffxxxx",bytes(dec))
+                        timestamp,t,lat,lng,alt,ve,vn=parser_gps.unpack(bytes(dec))
                         gps.append((timestamp,t,(lat,lng),(ve,vn)))
                         pos.append([timestamp,lat,lng,alt,ve,vn,0])
                     except:
