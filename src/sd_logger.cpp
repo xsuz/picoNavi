@@ -15,11 +15,12 @@ namespace sd_logger
     SemaphoreHandle_t xSemaphore = NULL;
     StaticSemaphore_t xMutexBuf;
 
-    const size_t size = 512;
-    uint8_t buf[256][size];
+    const size_t buf_size_col = 4096;
+    const size_t buf_size_row = 64;
+    uint8_t buf[buf_size_row][buf_size_col];
     int idx = 0;
     uint8_t row = 0, track = 0;
-    uint64_t offset = 0;
+    int64_t offset = 0;
 
     void inline write_raw(uint8_t);
 
@@ -46,10 +47,15 @@ namespace sd_logger
             {
                 if (f)
                 {
-                    f.write(sd_logger::buf[sd_logger::track], sd_logger::size);
+                    digitalWrite(LED_BUILTIN, HIGH);
+                    f.write(sd_logger::buf[sd_logger::track], sd_logger::buf_size_col);
                     f.flush();
+                    digitalWrite(LED_BUILTIN, LOW);
                 }
                 sd_logger::track++;
+                if(sd_logger::track==sd_logger::buf_size_row){
+                    sd_logger::track=0;
+                }
             }
             vTaskDelay(10);
         }
@@ -60,7 +66,7 @@ namespace sd_logger
 
         union
         {
-            uint64_t timestamp;
+            int64_t timestamp;
             uint8_t bytes[8];
         } t2u;
 
@@ -72,7 +78,7 @@ namespace sd_logger
         }
 
         t2u.timestamp = millis() + sd_logger::offset;
-        swap64<uint64_t>(&t2u.timestamp);
+        swap64<int64_t>(&t2u.timestamp);
 
         if (size == 0)
         {
@@ -126,14 +132,18 @@ namespace sd_logger
     {
         sd_logger::buf[sd_logger::row][sd_logger::idx] = data;
         sd_logger::idx++;
-        if (sd_logger::idx == sd_logger::size)
+        if (sd_logger::idx == sd_logger::buf_size_col)
         {
             sd_logger::row++;
+            if (sd_logger::row == sd_logger::buf_size_row)
+            {
+                sd_logger::row = 0;
+            }
             sd_logger::idx = 0;
         }
     }
 
-    void set_timestamp_offset(uint64_t val){
+    void set_timestamp_offset(int64_t val){
         offset=val;
     }
 }

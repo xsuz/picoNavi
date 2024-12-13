@@ -7,7 +7,7 @@
 #include "byte_utils.h"
 #include "sd_logger.h"
 
-#include <time.h>
+#include<ctime>
 
 #include <TinyGPSPlus.h>
 
@@ -15,7 +15,9 @@ namespace gnss
 {
     /// @brief NMEAパーサー
     TinyGPSPlus gps;
-    tm timeinfo;
+    std::tm timeinfo;
+    std::time_t t = std::time(nullptr);
+    int64_t offset = 0;
 
     constexpr float deg2radf = PI / 180.0f;
     constexpr float threshold_hdop = 2.0;
@@ -28,7 +30,7 @@ namespace gnss
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), false);
         if (gps.time.isValid()&&gps.date.isValid())
         {
-            uint64_t offset = millis();
+            offset = millis();
             timeinfo.tm_sec = gps.time.second();
             timeinfo.tm_min = gps.time.minute();
             timeinfo.tm_hour = gps.time.hour();
@@ -36,9 +38,10 @@ namespace gnss
             timeinfo.tm_mon = gps.date.month()-1;
             timeinfo.tm_year = gps.date.year() - 1900;
             timeinfo.tm_isdst = 0;
-            time_t t = mktime(&timeinfo);
+            t= std::mktime(&timeinfo);
             offset = t * 1000-offset;
             sd_logger::set_timestamp_offset(offset);
+            // sd_logger::set_timestamp_offset(((((gps.time.hour() + 9) % 24) * 60 + gps.time.minute()) * 60 + gps.time.second() + 1) * 1000 - millis());
         }
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), true);
     }

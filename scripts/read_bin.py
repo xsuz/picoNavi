@@ -13,8 +13,8 @@ if __name__=="__main__":
     imu=[]
     imu_t=[]
     with tqdm(total=len(data)+1) as pbar:
-        parser_imu=Struct(">QxxxxIfffffffffffff")
         parser_gps=Struct(">QxxxxIddfffxxxx")
+        parser_imu=Struct(">QxxxxIfffffffffffff")
         while len(data)>0:
             before = len(data)
             dec, data = cobs_decode(data)
@@ -42,9 +42,9 @@ if __name__=="__main__":
     plt.scatter(imu_t,imu[3],label='$a_z$',s=1)
     plt.legend()
     plt.show()
-    plt.scatter(imu_t,imu[4],label='$w_x$',s=1)
-    plt.scatter(imu_t,imu[5],label='$w_y$',s=1)
-    plt.scatter(imu_t,imu[6],label='$w_z$',s=1)
+    plt.scatter(imu[0],imu[4],label='$w_x$',s=1)
+    plt.scatter(imu[0],imu[5],label='$w_y$',s=1)
+    plt.scatter(imu[0],imu[6],label='$w_z$',s=1)
     plt.legend()
     plt.show()
     plt.hist(imu[4],1024)

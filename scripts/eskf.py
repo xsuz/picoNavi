@@ -82,8 +82,8 @@ if __name__=="__main__":
 
 
     with tqdm(total=len(data)+1) as pbar:
-        parser_imu=Struct(">IxxxxIfffffffffffff")
-        parser_gps=Struct(">IxxxxIddfffxxxx")
+        parser_imu=Struct(">QxxxxIfffffffffffff")
+        parser_gps=Struct(">QxxxxIddfffxxxx")
         while len(data)>0:
             before = len(data)
             dec, data = cobs_decode(data)
@@ -94,7 +94,7 @@ if __name__=="__main__":
             if len(dec)==0: # Empty packet
                 print("empty packet")
                 continue
-            match dec[4]:
+            match dec[8]:
                 case 0x40:
                     if t_start <0:
 
@@ -220,7 +220,7 @@ if __name__=="__main__":
     ax.legend()
     ax.axis('equal')
     plt.show()
-    # print(np.mean(np.rad2deg(pitch)),np.mean(np.rad2deg(roll)))
+    print(np.mean(np.rad2deg(pitch)),np.mean(np.rad2deg(roll)))
     # plt.plot(imu[:,0],np.rad2deg(roll),"-.",label="roll")
     # plt.plot(imu[:,0],np.rad2deg(pitch) ,":",label="pitch")
     # plt.plot(imu[:,0],np.rad2deg(yaw)  ,"-o",label="yaw")

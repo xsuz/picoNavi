@@ -7,5 +7,5 @@ namespace sd_logger
 {
     void write_pkt(const uint8_t *buffer, size_t size);
     void task(void *pvParam);
-    void set_timestamp_offset(uint64_t val);
+    void set_timestamp_offset(int64_t val);
 }

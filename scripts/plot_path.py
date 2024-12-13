@@ -22,8 +22,8 @@ if __name__=="__main__":
     with open("./log.bin","rb") as f:
         data = f.read()
     with tqdm(total=len(data)+1) as pbar:
-        parser_imu=Struct(">IxxxxIfffffffffffff")
-        parser_gps=Struct(">IxxxxIddfffxxxx")
+        parser_imu=Struct(">QxxxxIfffffffffffff")
+        parser_gps=Struct(">QxxxxIddfffxxxx")
         while len(data)>0:
             before = len(data)
             dec, data = cobs_decode(data)
@@ -34,7 +34,7 @@ if __name__=="__main__":
             if len(dec)==0: # Empty packet
                 print("empty packet")
                 continue
-            match dec[4]:
+            match dec[8]:
                 case 0x40:
                     pass
                 case 0x60:

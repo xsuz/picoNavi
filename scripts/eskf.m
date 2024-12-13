@@ -65,7 +65,7 @@ while (idx_imu<=len_imu) & (idx_gps<=len_gps)
         lla=gps_log(idx_gps,2:4);
         gpsvel=gps_log(idx_gps,5:7);
         fusegps(fusionfilt,lla,Rpos,gpsvel,Rvel);
-        fusemag(fusionfilt,mag,Rmag);
+        %fusemag(fusionfilt,mag,Rmag);
         %end
         idx_gps=idx_gps+1;
     end

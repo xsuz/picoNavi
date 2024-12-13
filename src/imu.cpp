@@ -57,7 +57,6 @@ namespace imu
             IMUData data;
             uint8_t bytes[sizeof(data)];
         } spkt;
-        digitalWrite(LED_BUILTIN, HIGH);
         icm20948.getAGMT();
         spkt.data.id = 0x40;
         spkt.data.timestamp = millis();
@@ -92,6 +91,5 @@ namespace imu
         swap32<float>(&spkt.data.q2);
         swap32<float>(&spkt.data.q3);
         sd_logger::write_pkt(spkt.bytes, sizeof(spkt.bytes));
-        digitalWrite(LED_BUILTIN, LOW);
     }
 }
