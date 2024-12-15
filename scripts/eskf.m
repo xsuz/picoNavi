@@ -2,20 +2,19 @@
 imuFs = 50;
 gpsFs = 10;
 
-imu_log=readmatrix("imu.csv");
-imu_log(5:7)=rad2deg(imu_log(5:7)); % rps -> dps
-gps_log=readmatrix("gps.csv");
+imu_log=readtimetable("imu.csv");
+gps_log=readtimetable("gps.csv");
 
 fusionfilt = insfilterMARG;
 fusionfilt.IMUSampleRate=imuFs;
-fusionfilt.ReferenceLocation=gps_log(1,2:4);
+fusionfilt.ReferenceLocation=[gps_log(1,'lat').lat,gps_log(1,'lng').lng,gps_log(1,'alt').alt];
 
 % Initialize the states of the filter 
 
 init_state=zeros(22,1);
 init_state(1:4)=[1.0, 0.0, 0.0, 0.0]; % orientation as a quaternion
 init_state(11:13)=deg2rad(0.0)/imuFs;
-init_state(14:16)=0.19/imuFs;
+init_state(14:16)=0.00/imuFs;
 
 fusionfilt.State=init_state;
 % Measurement noises
@@ -36,19 +35,19 @@ fusionfilt.StateCovariance = 1e-9*eye(22);
 
 idx_imu=100;
 idx_gps=100;
-len_imu=length(imu_log);
-len_gps=length(gps_log);
+len_imu=max(size(imu_log));
+len_gps=max(size(gps_log));
 
 
 % Log data for final metric computation.
 pqorient = quaternion.zeros(len_imu,1);
 pqpos = zeros(len_imu,3);
 
-while (idx_imu<=len_imu) & (idx_gps<=len_gps)
-    if imu_log(idx_imu,1)<gps_log(idx_gps,1)
-        accel=imu_log(idx_imu,2:4);
-        gyro=imu_log(idx_imu,5:7);
-        mag=imu_log(idx_imu,8:10);
+while (idx_imu<=len_imu) && (idx_gps<=len_gps)
+    if imu_log.timestamp(idx_imu)<gps_log.timestamp(idx_gps)
+        accel=[imu_log.ax(idx_imu),imu_log.ay(idx_imu),imu_log.az(idx_imu)];
+        gyro=[imu_log.wx(idx_imu),imu_log.wy(idx_imu),imu_log.wz(idx_imu)]/pi*180.0;
+        mag=[imu_log.mx(idx_imu),imu_log.my(idx_imu),imu_log.mz(idx_imu)];
         %if (imu_log(idx_imu,1)>5.078e7)
             % update by sys eq
             predict(fusionfilt,accel,gyro);
@@ -62,8 +61,8 @@ while (idx_imu<=len_imu) & (idx_gps<=len_gps)
     else
         %if (gps_log(idx_imu)>5.078e7)
         % update by obs eq
-        lla=gps_log(idx_gps,2:4);
-        gpsvel=gps_log(idx_gps,5:7);
+        lla=[gps_log.lat(idx_gps),gps_log.lng(idx_gps),gps_log.alt(idx_gps)];
+        gpsvel=[gps_log.ve(idx_gps),gps_log.ve(idx_gps),gps_log.vd(idx_gps)];
         fusegps(fusionfilt,lla,Rpos,gpsvel,Rvel);
         %fusemag(fusionfilt,mag,Rmag);
         %end
@@ -75,7 +74,7 @@ end
 peuler=euler(quaternion(pqorient),'ZYX','frame');
 peuler=rad2deg(peuler);
 hold on
-plot(imu_log(:,1),peuler(:,1));
-plot(imu_log(:,1),peuler(:,2));
-plot(imu_log(:,1),peuler(:,3));
+plot(imu_log.timestamp,peuler(:,1));
+plot(imu_log.timestamp,peuler(:,2));
+plot(imu_log.timestamp,peuler(:,3));
 legend("yaw","pitch","roll")

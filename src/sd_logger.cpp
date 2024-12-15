@@ -16,7 +16,7 @@ namespace sd_logger
     StaticSemaphore_t xMutexBuf;
 
     const size_t buf_size_col = 4096;
-    const size_t buf_size_row = 64;
+    const size_t buf_size_row = 16;
     uint8_t buf[buf_size_row][buf_size_col];
     int idx = 0;
     uint8_t row = 0, track = 0;
