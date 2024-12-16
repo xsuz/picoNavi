@@ -33,7 +33,7 @@ def mul_quat(q1,q2)->np.ndarray:
 
 if __name__=="__main__":
     with open("./log.bin","rb") as f:
-        data = f.read()[:900000]
+        data = f.read()
     pos=[]
     pos_gps=[]
     imu=[]
@@ -81,7 +81,7 @@ if __name__=="__main__":
     r_start=np.zeros(3)
 
 
-    with tqdm(total=len(data)+1) as pbar:
+    with tqdm(total=len(data)) as pbar:
         parser_imu=Struct(">QxxxxIfffffffffffff")
         parser_gps=Struct(">QxxxxIddfffxxxx")
         while len(data)>0:
@@ -209,7 +209,6 @@ if __name__=="__main__":
 
                     # ex[:]=0
     imu=np.array(imu)
-    np.savetxt("imu.csv",imu)
     euler_q=np.array(euler_q)
     pos=np.array(pos)
     pos_gps=np.array(pos_gps)
@@ -236,13 +235,3 @@ if __name__=="__main__":
     plt.scatter(imu[:,0],x_history[:,-1],label="gz")
     plt.legend()
     plt.show()
-    # plt.plot(imu[:,0],imu[:,1],label="$a_x$")
-    # plt.plot(imu[:,0],imu[:,2],label="$a_y$")
-    # plt.plot(imu[:,0],imu[:,3],label="$a_z$")
-    # plt.legend()
-    # plt.show()
-    # plt.plot(imu[:,0],imu[:,4],label=r"$\omega_x$")
-    # plt.plot(imu[:,0],imu[:,5],label=r"$\omega_y$")
-    # plt.plot(imu[:,0],imu[:,6],label=r"$\omega_z$")
-    # plt.legend()
-    # plt.show()

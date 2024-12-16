@@ -21,7 +21,7 @@ imu=[]
 if __name__=="__main__":
     with open("./log.bin","rb") as f:
         data = f.read()
-    with tqdm(total=len(data)+1) as pbar:
+    with tqdm(total=len(data)) as pbar:
         parser_imu=Struct(">QxxxxIfffffffffffff")
         parser_gps=Struct(">QxxxxIddfffxxxx")
         while len(data)>0:
@@ -56,7 +56,7 @@ p[2]-=p[2,0]
 fig=plt.figure()
 ax=fig.add_subplot(111,projection='3d')
 ax.plot(p[0],p[1],p[2])
-ax.plot(p[0],p[1],0)
+# ax.plot(p[0],p[1],0)
 ax.set_xlabel('E')
 ax.set_ylabel('N')
 ax.set_zlabel('U')
