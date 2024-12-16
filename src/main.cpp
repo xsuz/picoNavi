@@ -17,6 +17,8 @@ void setup()
 
     xTaskCreate(gnss::task,"gps_task",512,NULL,2,&Task2);
     xTaskCreate(imu::task,"imu_task",512,NULL,3,&Task3);
+    xTaskCreate(sd_logger::task,"sd_buf_task",512,NULL,1,&Task1);
+    vTaskStartScheduler();
 }
 
 void loop()
@@ -26,8 +28,6 @@ void loop()
 
 void setup1(){
     // Core System
-
-    xTaskCreate(sd_logger::task,"sd_buf_task",512,NULL,1,&Task1);
 }
 
 void loop1(){
