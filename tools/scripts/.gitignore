@@ -1,4 +1,5 @@
 log.bin
 __pycache__/*
+.venv/*
 gps.csv
 imu.csv

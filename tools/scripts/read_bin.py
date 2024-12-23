@@ -29,7 +29,7 @@ if __name__=="__main__":
                 case 0x40:
                     try:
                         timestamp,t,ax,ay,az,wx,wy,wz,mx,my,mz,q0,q1,q2,q3=parser_imu.unpack(bytes(dec))
-                        imu.append([timestamp,ax,ay,az,wx,wy,wz,mx,my,mz])
+                        imu.append([timestamp,ax,ay,az,wx,wy,wz,mx,my,mz,q0,q1,q2,q3])
                         # euler_q.append([ 
                         #   timestamp,
                         #   np.arctan2(2.0*(q0*q1+q2*q3),1.0-2.0*(q1*q1+q2*q2)),    # roll
@@ -43,7 +43,7 @@ if __name__=="__main__":
                     timestamp,t,lat,lng,alt,ve,vn=parser_gps.unpack(bytes(dec))
                     gps.append((timestamp,lat,lng,alt,ve,vn,0))
     
-    df_imu=pd.DataFrame(imu,columns=["timestamp","ax","ay","az","wx","wy","wz","mx","my","mz"])
+    df_imu=pd.DataFrame(imu,columns=["timestamp","ax","ay","az","wx","wy","wz","mx","my","mz","q0","q1","q2","q3"])
     df_gps=pd.DataFrame(gps,columns=["timestamp","lat","lng","alt","ve","vn","vd"])
 
     df_imu["timestamp"]=pd.to_datetime(df_imu["timestamp"],unit="ms")

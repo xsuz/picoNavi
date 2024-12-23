@@ -53,7 +53,7 @@ if __name__=="__main__":
     sigma_theta=0.1**2*dt_m**2
     sigma_a=1e-1**2*dt_m**2
     sigma_w=1e-1**2*dt_m**2
-    Q=np.diag([0,0,0,sigma_v,sigma_v,sigma_v,sigma_theta,sigma_theta,sigma_theta,sigma_a,sigma_a,sigma_a,sigma_w,sigma_w,sigma_w,0,0,0]) # Process noise covariance
+    Q=np.diag([0,0,0,sigma_v,sigma_v,sigma_v,sigma_theta,sigma_theta,sigma_theta,sigma_a,sigma_a,sigma_a,sigma_w,sigma_w,sigma_w,1e-3,1e-3,1e-3]) # Process noise covariance
 
     #(270)
     Fx=np.zeros((18,18)) # State transition matrix
