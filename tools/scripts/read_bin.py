@@ -6,9 +6,12 @@ import numpy as np
 from datetime import datetime
 from scipy.spatial.transform import Rotation
 import pandas as pd
+from glob import glob
 
 if __name__=="__main__":
-    with open("./log.bin","rb") as f:
+    filename=glob("log_*.bin")[-1]
+    print(f"loading {filename} ...")
+    with open(filename,"rb") as f:
         data = f.read()
     gps=[]
     imu=[]
@@ -30,12 +33,6 @@ if __name__=="__main__":
                     try:
                         timestamp,t,ax,ay,az,wx,wy,wz,mx,my,mz,q0,q1,q2,q3=parser_imu.unpack(bytes(dec))
                         imu.append([timestamp,ax,ay,az,wx,wy,wz,mx,my,mz])
-                        # euler_q.append([ 
-                        #   timestamp,
-                        #   np.arctan2(2.0*(q0*q1+q2*q3),1.0-2.0*(q1*q1+q2*q2)),    # roll
-                        #   np.arcsin(-2.0*(q1*q3-q0*q2)),                          # pitch
-                        #   np.arctan2(2.0*(q0*q3+q1*q2),1.0-2.0*(q2*q2+q3*q3))     # yaw
-                        # ])
                     except:
                         print("Error")
                         print(dec)

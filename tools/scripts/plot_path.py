@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from struct import Struct
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+from glob import glob
 
 def gps2xyz(lat,lon,h, a=6378137, b=6356752.31425, e2=0.00669438002290):
     e2=1-(b/a)**2
@@ -19,7 +20,9 @@ gps=[]
 pos=[]
 imu=[]
 if __name__=="__main__":
-    with open("./log.bin","rb") as f:
+    filename=glob("log_*.bin")[-1]
+    print(f"loading {filename} ...")
+    with open(filename,"rb") as f:
         data = f.read()
     with tqdm(total=len(data)) as pbar:
         parser_imu=Struct(">QxxxxIfffffffffffff")
