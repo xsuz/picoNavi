@@ -19,9 +19,6 @@ namespace imu
     constexpr float deg2rad = M_PI / 180.0f;
     void task(void *pvParam)
     {
-        pinMode(LED_BUILTIN, OUTPUT);
-
-        digitalWrite(LED_BUILTIN, HIGH);
         // IMU setup
         SPI1.setRX(12);
         SPI1.setCS(13);
