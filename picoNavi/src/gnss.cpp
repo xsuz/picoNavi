@@ -30,76 +30,7 @@ namespace gnss
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), false);
         if (gps.time.isValid() && gps.date.isValid())
         {
-            // t = std::time(nullptr);
-            // timeinfo.tm_sec = gps.time.second();
-            // timeinfo.tm_min = gps.time.minute();
-            // timeinfo.tm_hour = gps.time.hour();
-            // timeinfo.tm_mday = gps.date.day();
-            // timeinfo.tm_mon = gps.date.month() - 1;
-            // timeinfo.tm_year = gps.date.year() - 1900;
-            // timeinfo.tm_isdst = 0;
-            // t = std::mktime(&timeinfo);
-
-            uint16_t year = gps.date.year();
-            uint8_t month = gps.date.month();
-            uint8_t day = gps.date.day();
-            uint8_t hour = gps.time.hour();
-            uint8_t minute = gps.time.minute();
-            uint8_t second = gps.time.second();
-
-            int dl = year / 4 - year / 100 + year / 400;
-            constexpr int dl1970 = 1970 / 4 - 1970 / 100 + 1970 / 400;
-            t = (year - 1970) * 365 + dl - dl1970;
-            switch (month)
-            {
-            case 1:
-                t += 0;
-                break;
-            case 2:
-                t += 31;
-                break;
-            case 3:
-                t += 59;
-                break;
-            case 4:
-                t += 90;
-                break;
-            case 5:
-                t += 120;
-                break;
-            case 6:
-                t += 151;
-                break;
-            case 7:
-                t += 181;
-                break;
-            case 8:
-                t += 212;
-                break;
-            case 9:
-                t += 243;
-                break;
-            case 10:
-                t += 273;
-                break;
-            case 11:
-                t += 304;
-                break;
-            case 12:
-                t += 334;
-                break;
-            default:
-                break;
-            }
-            t += day - 1;
-            t *= 24;
-            t += hour;
-            t *= 60;
-            t += minute;
-            t *= 60;
-            t += second;
-            offset = t * 1000 - millis();
-            sd_logger::set_timestamp_offset(offset);
+            sd_logger::set_timestamp_offset(gps.date.year(),gps.date.month(),gps.date.day(),gps.time.hour(),gps.time.minute(),gps.time.second());
             // sd_logger::set_timestamp_offset(((((gps.time.hour() + 9) % 24) * 60 + gps.time.minute()) * 60 + gps.time.second() + 1) * 1000 - millis());
         }
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), true);
@@ -170,10 +101,6 @@ namespace gnss
             swap32<float>(&spkt.data.hdop);
 
             sd_logger::write_pkt(spkt.bytes, sizeof(spkt.bytes));
-        }
-        else
-        {
-            digitalWrite(LED_BUILTIN, LOW);
         }
     }
 }
