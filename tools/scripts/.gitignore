@@ -1,4 +1,5 @@
 log*.bin
+.mypy_cache
 __pycache__/*
 gps.csv
 imu.csv
