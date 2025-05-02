@@ -30,8 +30,6 @@ namespace sd_logger
 
     void inline write_raw(uint8_t);
 
-    /// @brief uSDに保存するタスク
-    /// @param pvParam
     void task(void *pvParam)
     {
         sd_logger::xSemaphore = xSemaphoreCreateMutexStatic(&sd_logger::xMutexBuf);

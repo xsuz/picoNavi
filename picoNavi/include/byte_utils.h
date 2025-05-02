@@ -2,7 +2,9 @@
 
 #include <stdint.h>
 
-/* バイトオーダー変換 */
+/// @brief 32bit変数のバイトオーダーを変換
+/// @tparam T 変換する変数の型
+/// @param val 変数のポインタ
 template<typename T>
 void swap32(T *val) {
   uint8_t *u8 = (uint8_t *)val;
@@ -16,6 +18,9 @@ void swap32(T *val) {
   u8[2] = tmp;
 }
 
+/// @brief 64bit変数のバイトオーダーを変換
+/// @tparam T 変換する変数の型
+/// @param val 変数のポインタ
 template<typename T>
 void swap64(T *val) {
   uint8_t *u8 = (uint8_t *)val;

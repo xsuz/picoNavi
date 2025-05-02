@@ -22,9 +22,6 @@ namespace gnss
     constexpr float deg2radf = PI / 180.0f;
     constexpr float threshold_hdop = 2.0;
 
-    /// @brief PPS信号の割り込みハンドラ
-    /// @param gpio
-    /// @param emask
     void pps_callback(uint gpio, uint32_t emask)
     {
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), false);
@@ -36,8 +33,6 @@ namespace gnss
         gpio_set_irq_enabled(gpio, (GPIO_IRQ_EDGE_RISE), true);
     }
 
-    /// @brief GPSレシーバの受信タスク
-    /// @param pvParam
     void task(void *pvParam)
     {
         // UART0を初期化
@@ -73,8 +68,6 @@ namespace gnss
         }
     }
 
-    /// @brief GPSデータのサンプリング
-    /// @param pvParam
     void timer_callback(TimerHandle_t xTimer)
     {
         union
