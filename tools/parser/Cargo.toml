@@ -1,0 +1,9 @@
+[package]
+name = "parser"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+helium-core = { path="./helium-core" }
+polars = { version = "0.45.1", features = ["lazy","dtype-datetime"]}

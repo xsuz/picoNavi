@@ -1,0 +1,3 @@
+[submodule "tools/parser/helium-core"]
+	path = tools/parser/helium-core
+	url = https://github.com/xsuz/helium-core

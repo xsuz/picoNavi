@@ -1,0 +1,8 @@
+astropy
+numpy
+scipy
+matplotlib
+pandas
+openpyxl
+tqdm
+jupyterlab
