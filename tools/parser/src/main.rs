@@ -1,8 +1,6 @@
 use std::fs;
-use std::io::{BufReader,Read};
+use std::io::{BufReader,Read,BufWriter,Write};
 use std::env;
-
-use polars::prelude::*;
 
 mod parser;
 
@@ -29,57 +27,21 @@ pub fn main() {
         }
     }
     {
-        let imu_data = parser.db.imu.data;
-
-        let imu_timestamp = imu_data.iter().map(|(_, t)| *t).collect::<Vec<i64>>();
-        let imu_ax = imu_data.iter().map(|(d, _)| d.accel_x).collect::<Vec<f32>>();
-        let imu_ay = imu_data.iter().map(|(d, _)| d.accel_y).collect::<Vec<f32>>();
-        let imu_az = imu_data.iter().map(|(d, _)| d.accel_z).collect::<Vec<f32>>();
-        let imu_gx = imu_data.iter().map(|(d, _)| d.gyro_x). collect::<Vec<f32>>();
-        let imu_gy = imu_data.iter().map(|(d, _)| d.gyro_y). collect::<Vec<f32>>();
-        let imu_gz = imu_data.iter().map(|(d, _)| d.gyro_z). collect::<Vec<f32>>();
-
-        let df_imu = df!(
-            "timestamp" => imu_timestamp,
-            "accel_x" => imu_ax,
-            "accel_y" => imu_ay,
-            "accel_z" => imu_az,
-            "gyro_x" => imu_gx,
-            "gyro_y" => imu_gy,
-            "gyro_z" => imu_gz
-        ).unwrap();
-
-        println!("IMU Data: {:?}", df_imu);
-
-        CsvWriter::new(std::fs::File::create("imu_data.csv").unwrap())
-            .finish(&mut df_imu.clone().lazy().collect().unwrap())
-            .unwrap();
+        let f = fs::File::create("imu.csv").unwrap();
+        let mut writer = BufWriter::new(f);
+        writeln!(writer, "timestamp,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z").unwrap();
+        for (data,timestamp) in &parser.db.imu.data {
+            writeln!(writer, "{},{},{},{},{},{},{}", timestamp, data.accel_x, data.accel_y, data.accel_z, data.gyro_x, data.gyro_y, data.gyro_z).unwrap();
+        }
+        writer.flush().unwrap();
     }
     {
-        let gps_data = parser.db.gps.data;
-
-        let gps_timestamp = gps_data.iter().map(|(_, t)| *t).collect::<Vec<i64>>();
-        let gps_lat = gps_data.iter().map(|(d, _)| d.latitude).collect::<Vec<f64>>();
-        let gps_lon = gps_data.iter().map(|(d, _)| d.longitude).collect::<Vec<f64>>();
-        let gps_alt = gps_data.iter().map(|(d, _)| d.altitude).collect::<Vec<f32>>();
-        let gps_velocity_east = gps_data.iter().map(|(d, _)| d.east_velocity).collect::<Vec<f32>>();
-        let gps_velocity_north = gps_data.iter().map(|(d, _)| d.north_velocity).collect::<Vec<f32>>();
-        let gps_hdop = gps_data.iter().map(|(d, _)| d.hdop).collect::<Vec<f32>>();
-
-        let df_gps = df!(
-            "timestamp" => gps_timestamp,
-            "latitude" => gps_lat,
-            "longitude" => gps_lon,
-            "altitude" => gps_alt,
-            "velocity_east" => gps_velocity_east,
-            "velocity_north" => gps_velocity_north,
-            "hdop" => gps_hdop
-        ).unwrap();
-
-        println!("GPS Data: {:?}", df_gps);
-
-        CsvWriter::new(std::fs::File::create("gps_data.csv").unwrap())
-            .finish(&mut df_gps.clone().lazy().collect().unwrap())
-            .unwrap();
+        let f = fs::File::create("gps.csv").unwrap();
+        let mut writer = BufWriter::new(f);
+        writeln!(writer, "timestamp,latitude,longitude,altitude,east_velocity,north_velocity").unwrap();
+        for (data,timestamp) in &parser.db.gps.data {
+            writeln!(writer, "{},{},{},{},{},{}", timestamp, data.latitude, data.longitude, data.altitude, data.east_velocity, data.north_velocity).unwrap();
+        }
+        writer.flush().unwrap();
     }
 }
