@@ -29,7 +29,7 @@ pub fn main() {
         }
     }
     {
-        let imu_data = parser.get_imu_data();
+        let imu_data = parser.db.imu.data;
 
         let imu_timestamp = imu_data.iter().map(|(_, t)| *t).collect::<Vec<i64>>();
         let imu_ax = imu_data.iter().map(|(d, _)| d.accel_x).collect::<Vec<f32>>();
@@ -56,7 +56,7 @@ pub fn main() {
             .unwrap();
     }
     {
-        let gps_data = parser.get_gps_data();
+        let gps_data = parser.db.gps.data;
 
         let gps_timestamp = gps_data.iter().map(|(_, t)| *t).collect::<Vec<i64>>();
         let gps_lat = gps_data.iter().map(|(d, _)| d.latitude).collect::<Vec<f64>>();
