@@ -9,6 +9,7 @@
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 TaskHandle_t Task3;
+TaskHandle_t Task4;
 
 void setup()
 {
@@ -27,9 +28,12 @@ void loop()
 }
 
 void setup1(){
-    // Core System
+    pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop1(){
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(1000);
 }

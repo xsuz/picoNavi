@@ -10,6 +10,7 @@
 // #include <ctime>
 
 #include <TinyGPSPlus.h>
+#include <ubx.h>
 
 namespace gnss
 {
@@ -39,13 +40,21 @@ namespace gnss
         Serial1.setFIFOSize(2048);
         Serial1.begin(9600);
         delay(1000);                           // GPSレシーバの起動を待機
-        Serial1.println("$PMTK251,115200*1F"); // Baudrateを115200に変更
+        uint8_t cmd0[]={181, 98, 6, 8, 6, 0, 100, 0, 1, 0, 1, 0, 122, 18};
+        Serial1.write(cmd0, sizeof(cmd0)); // RATEを100Hzに設定
+        delay(100);
+        // // NAV-PVT出力を有効化
+        // uint8_t cmd1[] = {181, 98, 6, 1, 8, 0, 1, 7, 0, 1, 0, 0, 0, 0, 24, 225};
+        // Serial1.write(cmd1, sizeof(cmd1));
+        // delay(100);
+        // // UBX出力を有効化
+        // uint8_t cmd2[] = {181, 98, 6, 0, 20, 0, 1, 0, 0, 0, 208, 8, 0, 0, 0, 194, 1, 0, 3, 0, 1, 0, 0, 0, 0, 0, 186, 82};
+        // Serial1.write(cmd2, sizeof(cmd2));
+        // delay(100);
+        Serial1.println("$PUBX,41,1,0007,0003,115200,0*18"); // baudrateを115200に設定
         delay(1000);
         Serial1.flush();       // 無効なデータを破棄
         Serial1.begin(115200); // baudrate 115200で再度UART0を初期化
-        delay(100);
-        Serial1.println("$PMTK220,100*2F");     // 送信頻度を100ms間隔に変更
-        Serial1.println("$PMTK353,1,0,1,1*36"); // GLONASSを無効化
 
         // PPSによる割り込み設定
         gpio_init(2);
@@ -58,6 +67,11 @@ namespace gnss
 
         while (1)
         {
+            while(Serial.available() > 0)
+            {
+                uint8_t c = Serial.read();
+                Serial1.write(c);
+            }
             while (Serial1.available() > 0)
             {
                 uint8_t c = Serial1.read();

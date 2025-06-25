@@ -9,14 +9,15 @@
 #include "byte_utils.h"
 #include "sd_logger.h"
 
-#include <ICM_20948.h>
+#include <ASM330LHHSensor.h>
 #include <SPI.h>
 
 namespace imu
 {
-    ICM_20948_SPI icm20948;
+    ASM330LHHSensor asm330lhh(&SPI1, 13, 1000000); // SPI1, CS pin 13, SPI speed 1MHz
     float quat[4] = {1.0f, 0.0f, 0.0f, 0.0f};
     constexpr float deg2rad = M_PI / 180.0f;
+    constexpr int LED = 11;
     void task(void *pvParam)
     {
         // IMU setup
@@ -25,22 +26,22 @@ namespace imu
         SPI1.setSCK(14);
         SPI1.setTX(15);
         SPI1.begin();
-        bool initialized = false;
-        while (!initialized)
+        pinMode(LED,OUTPUT);
+        digitalWrite(LED, LOW);
+        
+        if(asm330lhh.begin()==ASM330LHH_OK)
         {
-            icm20948.begin(13, SPI1);
-            if (icm20948.status != ICM_20948_Stat_Ok)
-            {
-                Serial.println("rerty...");
-                vTaskDelay(100);
-            }
-            else
-            {
-                initialized = true;
-            }
+            Serial.println("ASM330LHH initialized successfully");
         }
+        else
+        {
+            Serial.println("Failed to initialize ASM330LHH");
+            while(1); // Halt if initialization fails
+        }
+        asm330lhh.Enable_X();
+        asm330lhh.Enable_G();
 
-        auto timerIMU = xTimerCreate("imu", 20, pdTRUE, 0, imu::timer_callback);
+        auto timerIMU = xTimerCreate("imu", 10, pdTRUE, 0, imu::timer_callback);
         xTimerStart(timerIMU, 0);
         while (1)
         {
@@ -54,18 +55,19 @@ namespace imu
             IMUData data;
             uint8_t bytes[sizeof(data)];
         } spkt;
-        icm20948.getAGMT();
+        int32_t acc[3], gyr[3];
+        digitalWrite(LED, HIGH);
+        asm330lhh.Get_X_Axes(acc);
+        asm330lhh.Get_G_Axes(gyr);
+        digitalWrite(LED, LOW);
         spkt.data.id = 0x40;
         spkt.data.timestamp = millis();
-        spkt.data.a_x = icm20948.accX() * 0.00980665f;
-        spkt.data.a_y = icm20948.accY() * 0.00980665f;
-        spkt.data.a_z = icm20948.accZ() * 0.00980665f;
-        spkt.data.w_x = icm20948.gyrX() * deg2rad;
-        spkt.data.w_y = icm20948.gyrY() * deg2rad;
-        spkt.data.w_z = icm20948.gyrZ() * deg2rad;
-        spkt.data.m_x = icm20948.magX();
-        spkt.data.m_y = icm20948.magY();
-        spkt.data.m_z = icm20948.magZ();
+        spkt.data.a_x = acc[0] * 0.00980665f; // a_x(m/s^2)
+        spkt.data.a_y = acc[1] * 0.00980665f; // a_y(m/s^2)
+        spkt.data.a_z = acc[2] * 0.00980665f; // a_z(m/s^2)
+        spkt.data.w_x = gyr[0] * 0.001 * deg2rad;// // w_x(rad/s)
+        spkt.data.w_y = gyr[1] * 0.001 * deg2rad;// // w_x(rad/s)
+        spkt.data.w_z = gyr[2] * 0.001 * deg2rad;// // w_x(rad/s)
 
         madgwick::update_imu(spkt.data.w_x, spkt.data.w_y, spkt.data.w_z, spkt.data.a_x, spkt.data.a_y, spkt.data.a_z, quat);
         spkt.data.q0 = quat[0];

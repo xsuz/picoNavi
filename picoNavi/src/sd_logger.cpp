@@ -17,6 +17,8 @@ namespace sd_logger
     SemaphoreHandle_t xSemaphore = NULL;
     StaticSemaphore_t xMutexBuf;
 
+    constexpr int LED = 10; // Use built-in LED for status indication
+
     constexpr size_t buf_size_col = 4096;
     constexpr size_t buf_size_row = 16;
     uint8_t buf[buf_size_row][buf_size_col];
@@ -39,22 +41,22 @@ namespace sd_logger
 
         FRESULT res;
 
-        pinMode(LED_BUILTIN, OUTPUT);
+        pinMode(LED, OUTPUT);
 
-        digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(LED, LOW);
 
         while ((res = f_mount(&fs, "/", 1)) != FR_OK)
         {
-            digitalWrite(LED_BUILTIN, LOW);
-            vTaskDelay(1000);
-            digitalWrite(LED_BUILTIN, HIGH);
-            vTaskDelay(1000);
+            digitalWrite(LED, HIGH);
+            vTaskDelay(500);
+            digitalWrite(LED, LOW);
+            vTaskDelay(500);
         }
+        digitalWrite(LED, LOW);
 
         while (sd_logger::offset == 0)
         {
-            digitalWrite(LED_BUILTIN, HIGH);
-            vTaskDelay(100);
+            vTaskDelay(1000);
         }
 
         get_filename(filename, sd_logger::offset + millis());
@@ -65,10 +67,10 @@ namespace sd_logger
 
             while (sd_logger::row != sd_logger::track)
             {
-                digitalWrite(LED_BUILTIN, HIGH);
+                digitalWrite(LED, HIGH);
                 f_write(&fil, sd_logger::buf[sd_logger::track], sd_logger::buf_size_col, NULL);
                 f_sync(&fil);
-                digitalWrite(LED_BUILTIN, LOW);
+                digitalWrite(LED, LOW);
 
                 sd_logger::track++;
                 if (sd_logger::track == sd_logger::buf_size_row)
@@ -86,96 +88,169 @@ namespace sd_logger
         uint8_t seconds = t % 60;
         uint8_t minutes = (t / 60) % 60;
         uint8_t hour = (t / 3600) % 24;
-        t /= 86400; // sec -> day 1970-1-2 -> 1
+        t /= 86400; // days since 1970-01-01 (ex. 1970-01-02 -> 1)
         uint16_t year = 1970;
         uint8_t month = 0;
         uint8_t day = 0;
         int64_t unixtime = 0; // day
         while (unixtime <= t)
         {
-            if ((year % 4 == 0) && ((year % 400==0) || !(year % 100==0)))
+            if ((year % 4 == 0) && ((year % 400 == 0) || !(year % 100 == 0)))
             {
-                if(t-unixtime<366){
+                if (t - unixtime < 366)
+                {
                     break;
-                }else{
+                }
+                else
+                {
                     year++;
-                    unixtime+=366;
+                    unixtime += 366;
                 }
             }
             else
             {
-                if(t-unixtime<365){
+                if (t - unixtime < 365)
+                {
                     break;
-                }else{
-                    unixtime+=365;
+                }
+                else
+                {
+                    unixtime += 365;
                     year++;
                 }
             }
         }
-        t=t-unixtime;
+        t = t - unixtime;
 
-        if (t >= 334)
+        if ((year % 4 == 0) && ((year % 400 == 0) || !(year % 100 == 0)))
         {
-            month = 12;
-            day += t - 334;
-        }
-        else if (t >= 304)
-        {
-            month = 11;
-            day += t - 304;
-        }
-        else if (t >= 273)
-        {
-            month = 10;
-            day += t - 273;
-        }
-        else if (t >= 243)
-        {
-            month = 9;
-            day += t - 243;
-        }
-        else if (t >= 212)
-        {
-            month = 8;
-            day += t - 212;
-        }
-        else if (t >= 181)
-        {
-            month = 7;
-            day += t - 181;
-        }
-        else if (t >= 151)
-        {
-            month = 6;
-            day += t - 151;
-        }
-        else if (t >= 120)
-        {
-            month = 5;
-            day += t - 120;
-        }
-        else if (t >= 90)
-        {
-            month = 4;
-            day += t - 90;
-        }
-        else if (t >= 59)
-        {
-            month = 3;
-            day += t - 59;
-        }
-        else if (t >= 31)
-        {
-            month = 2;
-            day = t - 31;
+            if (t >= 335)
+            {
+                month = 12;
+                day += t - 335;
+            }
+            else if (t >= 304)
+            {
+                month = 11;
+                day += t - 304;
+            }
+            else if (t >= 274)
+            {
+                month = 10;
+                day += t - 274;
+            }
+            else if (t >= 243)
+            {
+                month = 9;
+                day += t - 243;
+            }
+            else if (t >= 213)
+            {
+                month = 8;
+                day += t - 213;
+            }
+            else if (t >= 182)
+            {
+                month = 7;
+                day += t - 182;
+            }
+            else if (t >= 152)
+            {
+                month = 6;
+                day += t - 152;
+            }
+            else if (t >= 121)
+            {
+                month = 5;
+                day += t - 121;
+            }
+            else if (t >= 91)
+            {
+                month = 4;
+                day += t - 91;
+            }
+            else if (t >= 60)
+            {
+                month = 3;
+                day += t - 60;
+            }
+            else if (t >= 31)
+            {
+                month = 2;
+                day = t - 31;
+            }
+            else
+            {
+                month = 1;
+                day = t;
+            }
         }
         else
         {
-            month = 1;
-            day = t + 1;
+            if (t >= 334)
+            {
+                month = 12;
+                day += t - 334;
+            }
+            else if (t >= 304)
+            {
+                month = 11;
+                day += t - 304;
+            }
+            else if (t >= 273)
+            {
+                month = 10;
+                day += t - 273;
+            }
+            else if (t >= 243)
+            {
+                month = 9;
+                day += t - 243;
+            }
+            else if (t >= 212)
+            {
+                month = 8;
+                day += t - 212;
+            }
+            else if (t >= 181)
+            {
+                month = 7;
+                day += t - 181;
+            }
+            else if (t >= 151)
+            {
+                month = 6;
+                day += t - 151;
+            }
+            else if (t >= 120)
+            {
+                month = 5;
+                day += t - 120;
+            }
+            else if (t >= 90)
+            {
+                month = 4;
+                day += t - 90;
+            }
+            else if (t >= 59)
+            {
+                month = 3;
+                day += t - 59;
+            }
+            else if (t >= 31)
+            {
+                month = 2;
+                day = t - 31;
+            }
+            else
+            {
+                month = 1;
+                day = t;
+            }
         }
+        day=day+1;
 
-        sprintf(buf, "log_%d%02d%02d_%02d%02d%02d.bin", year,month,day,hour,minutes,seconds);
+        sprintf(buf, "log_%d%02d%02d_%02d%02d%02d.bin", year, month, day, hour, minutes, seconds);
     }
 
     void write_pkt(const uint8_t *buffer, size_t size)
