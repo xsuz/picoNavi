@@ -9,18 +9,14 @@ struct GPSData {
   uint8_t id;
   /// @brief 時刻
   uint32_t timestamp;
-  /// @brief 緯度
-  double latitude;
-  /// @brief 経度
-  double longitude;
-  /// @brief GPS高度
-  float alt;
-  /// @brief 速度(East)
-  float ve;
-  /// @brief 速度(North)
-  float vn;
-  /// @brief HDOP
-  float hdop;
+  int32_t latitude;	  // Latitude: deg * 1e-7
+  int32_t longitude;	  // Longitude: deg * 1e-7
+  int32_t altitude;     // Height above ellipsoid: mm
+	int32_t velN;	  // NED north velocity: mm/s
+	int32_t velE;	  // NED east velocity: mm/s
+	int32_t velD;	  // NED down velocity: mm/s
+	uint32_t hAcc;	  // Horizontal accuracy estimate: mm
+	uint32_t vAcc;	  // Vertical accuracy estimate: mm
 };
 
 /// @brief IMUのDeviceData
