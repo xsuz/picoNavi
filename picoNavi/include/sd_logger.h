@@ -5,25 +5,23 @@
 
 namespace sd_logger
 {
+    /// @brief パケットをログとして保存する
+    /// @param buffer 
+    /// @param size 
+    /// @param utc
+    void write_pkt(uint32_t id, const uint8_t *payload, size_t size,int64_t utc);
+
     /// @brief バイト列をログとして保存する
     /// @param buffer 
     /// @param size 
-    void write_pkt(const uint8_t *buffer, size_t size);
+    /// @param utc
+    void write_bytes(const uint8_t *buffer, size_t size,int64_t utc);
 
     /// @brief SDカードにログを保存するタスク
     /// @param pvParam 
     void task(void *pvParam);
 
-    /// @brief ログの時刻補正
-    /// @param val UTC時刻
-    void set_timestamp_offset(int64_t val);
-
-    /// @brief ログの時刻補正
-    /// @param year 現在の年（西暦）
-    /// @param month 現在の月
-    /// @param day 現在の日
-    /// @param hour 現在の時
-    /// @param minute 現在の分
-    /// @param second 現在の秒
-    void set_timestamp_offset(uint16_t year,uint8_t month,uint8_t day,uint8_t hour,uint8_t minute,uint8_t second);
+    /// @brief SDカードのステータスを取得する
+    /// @return 0 = 無効, 1 = 有効
+    uint8_t is_valid();
 }

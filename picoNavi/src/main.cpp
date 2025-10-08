@@ -1,24 +1,24 @@
 #include <Arduino.h>
 #include <FreeRTOS.h>
 #include <task.h>
+#include <map>
+
+#include <SEGGER_RTT.h>
 
 #include "sd_logger.h"
 #include "gnss.h"
-#include "imu.h"
 
 TaskHandle_t Task1;
 TaskHandle_t Task2;
-TaskHandle_t Task3;
 
 void setup()
 {
     // put your setup code here, to run once:
     Serial.begin(115200);
 
-    xTaskCreate(gnss::task,"gps_task",512,NULL,2,&Task2);
-    xTaskCreate(imu::task,"imu_task",512,NULL,3,&Task3);
-    xTaskCreate(sd_logger::task,"sd_buf_task",512,NULL,1,&Task1);
-    vTaskStartScheduler();
+    xTaskCreate(gnss::task,"gps",512,NULL,4,&Task2);
+    xTaskCreate(sd_logger::task,"sd",256,NULL,1,&Task1);
+    // vTaskStartScheduler();
 }
 
 void loop()
